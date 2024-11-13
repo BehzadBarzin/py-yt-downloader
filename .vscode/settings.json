@@ -1,6 +1,9 @@
 {
+    "editor.rulers": [80],
     "cSpell.words": [
         "acodec",
+        "geoip",
+        "geolite",
         "imageio",
         "itag",
         "moviepy",
