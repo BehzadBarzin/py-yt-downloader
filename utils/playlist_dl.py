@@ -1,59 +1,121 @@
-from pytubefix import Playlist, Stream
-from collections import defaultdict
+import os
+import glob
+from uuid import uuid4 as UUID
+from pytubefix import Playlist, YouTube
 
-from .ask import get_dirname, choose_stream
+from .ask import get_dirname, resolutions, get_min_resolution, bitrates, get_min_bitrate
 from .file import slugify
 from .console import print_separator, print_error, print_success, print_info
+from .video_dl import download, merge_audio_video
 
 def download_playlist(url):
     # --------------------------------------------------------------------------
     # Initialize PyTube object with OAuth
     yt = Playlist(url, use_oauth=True, allow_oauth_cache=True)
-    # --------------------------------------------------------------------------    
-    # Get streams that are shared across all videos
-    (common_audio, common_video) = get_common_streams(yt)
-    # --------------------------------------------------------------------------
-    # Let user choose video stream
-    video_stream = choose_stream(common_video, is_video=True)
-    print_separator()
-    # --------------------------------------------------------------------------
-    # Let user choose audio stream
-    audio_stream = choose_stream(common_audio, is_video=False)
-    print_separator()
     # --------------------------------------------------------------------------
     # Let user choose the directory name
-    default_dir = f"./{slugify(yt.title)}" # Use playlist title (slug) as default directory
-    dir = get_dirname(default_dir)
+    default_dir = f"./out/{slugify(yt.title)}" # Use playlist title (slug) as default directory
+    file_dir = get_dirname(default_dir)
+    print_separator()
     # --------------------------------------------------------------------------
-    print(video_stream)
-    print(audio_stream)
+    # Let user choose preferred video resolutions (e.g. "1080p")
+    min_resolution = get_min_resolution()
+    print_separator()
+    print_info(f"We will only download mp4 streams with minimum quality of {min_resolution} for video.")
+    print_separator()
     # --------------------------------------------------------------------------
+    # Let user choose preferred audio bitrate (e.g. "128kbps")
+    min_bitrate = get_min_bitrate()
+    print_separator()
+    print_info(f"We will only download audio streams with minimum bitrate of {min_bitrate} for audio.")
+    print_separator()
     # --------------------------------------------------------------------------
+    # Download each video
+    for idx, video in enumerate(yt.videos):
+        download_video(video, file_dir, min_resolution, min_bitrate, idx + 1)
+        print_separator()
+    # --------------------------------------------------------------------------
+    print_success("Playlist Downloaded")
     # --------------------------------------------------------------------------
 
 
 # ------------------------------------------------------------------------------
-# Function to find common streams across all videos in the playlist
-def get_common_streams(yt: Playlist):
-    common_audio_streams = defaultdict(int)
-    common_video_streams = defaultdict(int)
+def download_video(yt: YouTube, file_dir: str, min_resolution: str, min_bitrate: str, playlist_idx: int):
+    # --------------------------------------------------------------------------
+    # Choose video stream
+    all_video_stream = [
+        stream for stream in yt.streams.filter(is_dash=True, subtype="mp4").order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track
+    ]
+    # Start from the minimum selected resolution, and find the highest quality video stream
+    for res in resolutions[resolutions.index(min_resolution):]:
+        for stream in all_video_stream:
+            if stream.resolution == res:
+                video_stream = stream
+                break
+        if video_stream is not None:
+            break
+    if video_stream is None:
+        print_error(f"No video stream available with minimum resolution of {min_resolution}.")
+        return
+    # --------------------------------------------------------------------------
+    # Get highest available audio stream
+    all_audio_stream = [
+        stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track
+    ]
+    # Start from the minimum selected bitrate, and find the highest bitrate audio stream
+    for br in bitrates[bitrates.index(min_bitrate):]:
+        for stream in all_audio_stream:
+            if stream.abr == br:
+                audio_stream = stream
+                break
+        if audio_stream is not None:
+            break
+    if audio_stream is None:
+        print_error(f"No audio stream available with minimum bitrate of {min_bitrate}.")
+        return
+    # --------------------------------------------------------------------------
+    # Select file name that includes index in playlist
+    file_name_no_idx = f"{slugify(yt.title)}.{video_stream.subtype}" # Used to see if file exists
+    file_name = f"{playlist_idx}-{file_name_no_idx}"
+    # --------------------------------------------------------------------------
+    # Define file names
+    file_path = os.path.join(file_dir, file_name)
+    # Select temp file names for video and audio streams
+    video_file_name = f"temp_vid_{UUID()}.{video_stream.subtype}"
+    video_file_path = os.path.join(file_dir, video_file_name)
     
-    # Initialize lists for common audio and video streams
-    for video in yt.videos:
-        # Get streams for the video
-        audio_streams = [stream for stream in video.streams.filter(is_dash=True) if stream.includes_video_track and not stream.includes_audio_track]
-        video_streams = [stream for stream in video.streams.filter(is_dash=True) if stream.includes_audio_track and not stream.includes_video_track]
-        
-        # Count each unique stream in all videos
-        for stream in audio_streams:
-            common_audio_streams[stream.itag] += 1
-        
-        for stream in video_streams:
-            common_video_streams[stream.itag] += 1
-    
-    # Filter out streams that are not common to all videos
-    total_videos = len(yt.video_urls)
-    common_audio = [stream for stream, count in common_audio_streams.items() if count == total_videos]
-    common_video = [stream for stream, count in common_video_streams.items() if count == total_videos]
-
-    return common_audio, common_video
+    audio_file_name = f"temp_aud_{UUID()}.{audio_stream.subtype}"
+    audio_file_path = os.path.join(file_dir, audio_file_name)
+    # --------------------------------------------------------------------------
+    # If file exists, skip
+    # Check to see if file exists by using a wildcard (*) in place of its idx because file order might have changed
+    found_files = glob.glob(os.path.join(file_dir, f"*{file_name_no_idx}"))
+    if len(found_files) > 0:
+        print_info(f"Video \"{yt.title}\" already exists. Skipping...")
+        return
+    else:
+        print_info(f"Downloading video: {file_name}")
+    # --------------------------------------------------------------------------
+    # Start download process and merge audio and video
+    try:
+        # ----------------------------------------------------------------------
+        # Download video and audio streams
+        download(yt, video_stream, file_dir, video_file_name)
+        download(yt, audio_stream, file_dir, audio_file_name)
+        # ----------------------------------------------------------------------
+        print_info("Download complete. Merging audio and video...")
+        # ----------------------------------------------------------------------
+        # Merge video and audio using ffmpeg-python
+        merge_audio_video(video_file_path, audio_file_path, file_path)
+        # ----------------------------------------------------------------------
+    except Exception as e:
+        print_error("Error during download or merge:", e)
+        exit(1)
+    finally:
+        # Clean up temporary files
+        if os.path.exists(video_file_path):
+            os.remove(video_file_path)
+        if os.path.exists(audio_file_path):
+            os.remove(audio_file_path)
+        print_success("Video Downloaded")
+    # --------------------------------------------------------------------------

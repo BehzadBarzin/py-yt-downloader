@@ -1,3 +1,4 @@
+from enum import Enum
 import re
 import os
 import shutil
@@ -38,12 +39,12 @@ def ask_yes_no(question):
     return True if answers['yes_no'] == 'Yes' else False
 
 # ------------------------------------------------------------------------------
-# Check if url is video, playlist, or channel
+# Check if url is video or playlist
 def check_url(url):
     questions = [
     inquirer.List('type',
-                    message=chalk.blue.bold("Is this a video, playlist, or channel?"),
-                    choices=['Video', 'Playlist', 'Channel'],
+                    message=chalk.blue.bold("Is this a video or playlist?"),
+                    choices=['Video', 'Playlist'],
                 ),
     ]
     answers = inquirer.prompt(questions)
@@ -157,16 +158,63 @@ def get_dirname(default_dir: str):
     
     dir = answers['dir']
     
-    # If dir exists, ask user whether to remove it
+    # If dir exists, ask user whether to update it
     if os.path.exists(dir):
-        # Ask user whether to remove it
-        remove_file = ask_yes_no(f"File {dir} already exists. Do you want to remove it?")
-        if remove_file:
-            shutil.rmtree(dir)
+        # Ask user whether to update it
+        update_it = ask_yes_no(f"Directory {dir} already exists. Do you want to update it?")
+        if update_it:
+            # We just need to run the download playlist again it would automatically skip the existing videos
+            return dir
         else:
-            # Recursively ask for filename
-            return get_filename(default_dir)
+            # Recursively ask for directory name
+            return get_dirname(default_dir)
 
     return dir
+
+# ------------------------------------------------------------------------------
+# Ask user for preferred maximum resolution
+resolutions = [
+    '4320p', # 8K
+    '2160p', # 4K
+    '1440p', # 2K
+    '1080p', # Full HD
+    '720p',
+    '480p',
+    '360p',
+    '240p',
+    '144p',
+]
+    
+def get_min_resolution():
+    questions = [
+        inquirer.List('min_resolution', 
+                        message=chalk.blue.bold("Please select a minimum resolution (if it's not available, a lower resolution will be used)"), 
+                        choices=resolutions,
+                        default=resolutions[0]
+                    ),
+    ]
+    answers = inquirer.prompt(questions)
+
+    return answers['min_resolution']
+# ------------------------------------------------------------------------------
+
+bitrates = [
+    '160kbps', 
+    '128kbps', 
+    '70kbps', 
+    '50kbps', 
+    '48kbps'
+]
+def get_min_bitrate():
+    questions = [
+        inquirer.List('min_bitrate', 
+                        message=chalk.blue.bold("Please select a minimum bitrate (if it's not available, a lower bitrate will be used)"), 
+                        choices=bitrates,
+                        default=bitrates[0]
+                    ),
+    ]
+    answers = inquirer.prompt(questions)
+
+    return answers['min_bitrate']
 
 # ------------------------------------------------------------------------------
