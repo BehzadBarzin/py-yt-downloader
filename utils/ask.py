@@ -69,7 +69,7 @@ def choose_stream(streams: list[Stream], is_video: bool):
     # Function to convert stream to string
     def stream_to_string(stream: Stream):
         codec = stream.video_codec if is_video else stream.audio_codec
-        return f"{stream.itag}: {stream.resolution} - {stream.filesize_mb}MB - ({stream.mime_type}) - ({codec})"
+        return f"{stream.itag}: {stream.resolution if is_video else stream.abr} - {stream.filesize_mb}MB - ({stream.mime_type}) - ({codec})"
     
     # Compile a list of string options from the streams
     options = [

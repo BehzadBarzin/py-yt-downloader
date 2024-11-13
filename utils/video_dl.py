@@ -13,17 +13,13 @@ def download_video(url):
     # Initialize PyTube object with OAuth
     yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
     # --------------------------------------------------------------------------
-    all_streams = [
-        stream for stream in yt.streams.filter(is_dash=True)
-    ]
-    # --------------------------------------------------------------------------
     # Let user choose video stream
-    video_stream_options  = [stream for stream in all_streams if stream.includes_video_track and not stream.includes_audio_track]
+    video_stream_options  = [stream for stream in yt.streams.filter(is_dash=True).order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track]
     video_stream = choose_stream(video_stream_options, is_video=True)
     print_separator()
     # --------------------------------------------------------------------------
     # Let user choose audio stream
-    audio_stream_options  = [stream for stream in all_streams if stream.includes_audio_track and not stream.includes_video_track]
+    audio_stream_options  = [stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track]
     audio_stream = choose_stream(audio_stream_options, is_video=False)
     print_separator()
     # --------------------------------------------------------------------------
