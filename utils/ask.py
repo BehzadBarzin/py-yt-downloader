@@ -50,6 +50,20 @@ def check_url(url):
     return answers['type']
     
 # ------------------------------------------------------------------------------
+# Choose format (webm/mp4)
+def choose_format():
+    questions = [
+        inquirer.List('format',
+                        message=chalk.blue.bold("Please select a format"),
+                        choices=['webm', 'mp4'],
+                        default='webm',
+                    ),
+    ]
+    answers = inquirer.prompt(questions)
+
+    return answers['format']
+
+# ------------------------------------------------------------------------------
 # Choose stream from list
 def choose_stream(streams: list[Stream], is_video: bool):
     # Check if there are any streams

@@ -7,7 +7,7 @@ import subprocess
 from .file import get_project_root
 
 from .console import print_separator, print_error, print_success, print_info
-from .ask import choose_stream, get_filename
+from .ask import choose_format, choose_stream, get_filename
 
 
 def download_video(url):
@@ -15,13 +15,25 @@ def download_video(url):
     # Initialize PyTube object with OAuth
     yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
     # --------------------------------------------------------------------------
+    # Let user choose format (used to filter both with video and audio)
+    format = choose_format() # "webm" or "mp4"
+    print_separator()
+    # --------------------------------------------------------------------------
     # Let user choose video stream
     video_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track]
+    
+    # Filter streams that match the selected format
+    video_stream_options = [stream for stream in video_stream_options if format in stream.mime_type]
+    
     video_stream = choose_stream(video_stream_options, is_video=True)
     print_separator()
     # --------------------------------------------------------------------------
     # Let user choose audio stream
     audio_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track]
+    
+    # Filter streams that match the selected format
+    audio_stream_options = [stream for stream in audio_stream_options if format in stream.mime_type]
+    
     audio_stream = choose_stream(audio_stream_options, is_video=False)
     print_separator()
     # --------------------------------------------------------------------------
