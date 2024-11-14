@@ -185,7 +185,7 @@ resolutions = [
     '144p',
 ]
     
-def get_min_resolution():
+def get_min_resolution(): 
     questions = [
         inquirer.List('min_resolution', 
                         message=chalk.blue.bold("Please select a minimum resolution (if it's not available, a lower resolution will be used)"), 

@@ -1,7 +1,18 @@
+import os
 import requests
 import sys
+import geoip2.database
 
 from .console import print_error, print_success
+
+# ------------------------------------------------------------------------------
+# Get the country name from ip address
+def get_country_of_ip(ip: str) -> str:
+    db_path = os.path.join(os.path.dirname(__file__), "bin", "GeoLite2-Country.mmdb")
+    with geoip2.database.Reader(db_path) as reader:
+        response = reader.country(ip)
+        return response.country.name
+        
 
 # ------------------------------------------------------------------------------
 def check_vpn():
@@ -12,8 +23,8 @@ def check_vpn():
         # ----------------------------------------------------------------------
         # Check if the current IP is from Iran
         if ip:
-            response = requests.get(f'https://api.hackertarget.com/geoip/?q={ip}&output=json').json()
-            country = response.get("country")
+            # Get country name
+            country = get_country_of_ip(ip)
             if country == "Iran":
                 print_error("You are in Iran! Please, connect to VPN.")
                 sys.exit(1)

@@ -1,7 +1,7 @@
 import os
 import glob
 from uuid import uuid4 as UUID
-from pytubefix import Playlist, YouTube
+from pytubefix import Playlist, YouTube, Stream
 
 from .ask import get_dirname, resolutions, get_min_resolution, bitrates, get_min_bitrate
 from .file import slugify
@@ -43,15 +43,20 @@ def download_playlist(url):
 def download_video(yt: YouTube, file_dir: str, min_resolution: str, min_bitrate: str, playlist_idx: int):
     # --------------------------------------------------------------------------
     # Choose video stream
-    all_video_stream = [
+    all_video_stream: list[Stream] = [
         stream for stream in yt.streams.filter(is_dash=True, subtype="mp4").order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track
     ]
     # Start from the minimum selected resolution, and find the highest quality video stream
-    for res in resolutions[resolutions.index(min_resolution):]:
+    
+    # A list of possible resolutions including and lower than what user selected
+    video_stream = None
+    lower_resolutions: list[str] = resolutions[resolutions.index(min_resolution):]
+    for res in lower_resolutions:
         for stream in all_video_stream:
             if stream.resolution == res:
                 video_stream = stream
                 break
+        # Break if video stream has been found
         if video_stream is not None:
             break
     if video_stream is None:
@@ -59,15 +64,20 @@ def download_video(yt: YouTube, file_dir: str, min_resolution: str, min_bitrate:
         return
     # --------------------------------------------------------------------------
     # Get highest available audio stream
-    all_audio_stream = [
+    all_audio_stream: list[Stream] = [
         stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track
     ]
     # Start from the minimum selected bitrate, and find the highest bitrate audio stream
-    for br in bitrates[bitrates.index(min_bitrate):]:
+    
+    # A list of possible bitrates including and lower than what user selected
+    audio_stream = None
+    lower_bitrates: list[str] = bitrates[bitrates.index(min_bitrate):]
+    for br in lower_bitrates:
         for stream in all_audio_stream:
             if stream.abr == br:
                 audio_stream = stream
                 break
+        # Break if audio stream has been found
         if audio_stream is not None:
             break
     if audio_stream is None:
