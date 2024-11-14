@@ -1,12 +1,10 @@
-from enum import Enum
 import re
 import os
-import shutil
 import inquirer
 from simple_chalk import chalk
 from pytubefix import Stream, YouTube
 
-from .file import slugify
+from .file import get_desktop_dir, get_project_root, slugify
 
 from .console import print_error
 
@@ -16,7 +14,7 @@ def get_url():
     questions = [
         inquirer.Text('url', 
                         message=chalk.blue.bold("Please enter a YouTube URL"), 
-                        validate=lambda _, x: re.match(r'https?://(?:www\.)?youtube\.com/.*', x)
+                        validate=lambda _, x: re.match(r'https?://(?:www\.|m\.)?youtube\.com/.*', x)
                     ),
     ]
     answers = inquirer.prompt(questions)
@@ -116,7 +114,7 @@ def get_filename(yt: YouTube, selected_video_stream: Stream):
         inquirer.Path('file_dir',
                         message=chalk.blue.bold("Please enter a directory"),
                         path_type=inquirer.Path.DIRECTORY,
-                        default="./out",
+                        default=os.path.join(get_desktop_dir(), "yt-dl"),
                     ),
     ]
     

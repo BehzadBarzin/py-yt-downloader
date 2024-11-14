@@ -4,6 +4,8 @@ from uuid import uuid4 as UUID
 from tqdm import tqdm
 import subprocess
 
+from .file import get_project_root
+
 from .console import print_separator, print_error, print_success, print_info
 from .ask import choose_stream, get_filename
 
@@ -87,7 +89,7 @@ def download(yt: YouTube, stream: Stream, file_dir: str, file_name: str):
 # Merge audio and video
 def merge_audio_video(video_path, audio_path, output_path):
     # Path to ffmpeg executable
-    ffmpeg_path = os.path.join("utils", "bin", "ffmpeg.exe")
+    ffmpeg_path = os.path.join(get_project_root(), "data", "ffmpeg.exe")
     
     # Command to merge video and audio while keeping original quality
     command = [

@@ -8,6 +8,7 @@
         "imageio",
         "itag",
         "kbps",
+        "MEIPASS",
         "moviepy",
         "pytube",
         "pytubefix",

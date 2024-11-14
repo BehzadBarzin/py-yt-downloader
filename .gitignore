@@ -1,5 +1,7 @@
 .py-yt-downloader
 utils/__pycache__/
-utils/bin/*
-!utils/bin/.gitkeep
+data/*
+!data/.gitkeep
 out
+dist
+build

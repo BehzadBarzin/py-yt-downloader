@@ -4,11 +4,12 @@ import sys
 import geoip2.database
 
 from .console import print_error, print_success
+from .file import get_project_root
 
 # ------------------------------------------------------------------------------
 # Get the country name from ip address
 def get_country_of_ip(ip: str) -> str:
-    db_path = os.path.join(os.path.dirname(__file__), "bin", "GeoLite2-Country.mmdb")
+    db_path = os.path.join(get_project_root(), "data", "GeoLite2-Country.mmdb")
     with geoip2.database.Reader(db_path) as reader:
         response = reader.country(ip)
         return response.country.name
