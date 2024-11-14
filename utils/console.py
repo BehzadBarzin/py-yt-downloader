@@ -1,13 +1,14 @@
 import os
 from simple_chalk import chalk
 
+terminal_width = os.get_terminal_size().columns
 # ------------------------------------------------------------------------------
 def clear_console():
     os.system("cls" if os.name == "nt" else "clear")
     
 # ------------------------------------------------------------------------------
 def print_separator():
-    print('-' * 100)
+    print('-' * terminal_width)
 
 # ------------------------------------------------------------------------------
 # Print with chalk
