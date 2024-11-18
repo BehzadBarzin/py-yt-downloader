@@ -25,7 +25,7 @@ def download_playlist(url):
     # Let user choose preferred video resolutions (e.g. "1080p")
     min_resolution = get_min_resolution()
     print_separator()
-    print_info(f"We will only download mp4 streams with minimum quality of {min_resolution} for video.")
+    print_info(f"We will only download {format} streams with minimum quality of {min_resolution} for video.")
     print_separator()
     # --------------------------------------------------------------------------
     # Let user choose preferred audio bitrate (e.g. "128kbps")
@@ -103,12 +103,12 @@ def download_video(yt: YouTube, file_dir: str, format: str, min_resolution: str,
     # --------------------------------------------------------------------------
     # Define file names
     file_path = os.path.join(file_dir, file_name)
-    # Select temp file names for video and audio streams
-    video_file_name = f"temp_vid_{UUID()}.{video_stream.subtype}"
-    video_file_path = os.path.join(file_dir, video_file_name)
     
-    audio_file_name = f"temp_aud_{UUID()}.{audio_stream.subtype}"
-    audio_file_path = os.path.join(file_dir, audio_file_name)
+    # Select temp file names for video and audio streams
+    random_id = str(UUID())[:8]
+    video_file_name = f"temp_vid_{random_id}"
+
+    audio_file_name = f"temp_aud_{random_id}"
     # --------------------------------------------------------------------------
     # If file exists, skip
     # Check to see if file exists by using a wildcard (*) in place of its idx and extension because file order and/or type might have changed
@@ -123,22 +123,22 @@ def download_video(yt: YouTube, file_dir: str, format: str, min_resolution: str,
     try:
         # ----------------------------------------------------------------------
         # Download video and audio streams
-        download(yt, video_stream, file_dir, video_file_name)
-        download(yt, audio_stream, file_dir, audio_file_name)
+        downloaded_video_path = download(yt, video_stream, file_dir, video_file_name)
+        downloaded_audio_path = download(yt, audio_stream, file_dir, audio_file_name)
         # ----------------------------------------------------------------------
         print_info("Download complete. Merging audio and video...")
         # ----------------------------------------------------------------------
         # Merge video and audio using ffmpeg-python
-        merge_audio_video(video_file_path, audio_file_path, file_path)
+        merge_audio_video(downloaded_video_path, downloaded_audio_path, file_path)
         # ----------------------------------------------------------------------
     except Exception as e:
-        print_error("Error during download or merge:", e)
+        print_error(f"Error during download or merge: {e}")
         exit(1)
     finally:
         # Clean up temporary files
-        if os.path.exists(video_file_path):
-            os.remove(video_file_path)
-        if os.path.exists(audio_file_path):
-            os.remove(audio_file_path)
+        if os.path.exists(downloaded_video_path):
+            os.remove(downloaded_video_path)
+        if os.path.exists(downloaded_audio_path):
+            os.remove(downloaded_audio_path)
         print_success("Video Downloaded")
     # --------------------------------------------------------------------------

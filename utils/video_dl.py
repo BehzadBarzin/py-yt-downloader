@@ -40,37 +40,37 @@ def download_video(url):
     # Let user choose the file and directory names
     (file_dir, file_name) = get_filename(yt, video_stream)
     file_path = os.path.join(file_dir, file_name)
-    # Select temp file names for video and audio streams
-    video_file_name = f"temp_vid_{UUID()}.{video_stream.subtype}"
-    video_file_path = os.path.join(file_dir, video_file_name)
     
-    audio_file_name = f"temp_aud_{UUID()}.{audio_stream.subtype}"
-    audio_file_path = os.path.join(file_dir, audio_file_name)
+    # Select temp file names for video and audio streams
+    random_id = str(UUID())[:8]
+    video_file_name = f"temp_vid_{random_id}"
+    
+    audio_file_name = f"temp_aud_{random_id}"
     print_separator()
     # --------------------------------------------------------------------------
     # Start download process and merge audio and video
     try:
         # ----------------------------------------------------------------------
         # Download video and audio streams
-        download(yt, video_stream, file_dir, video_file_name)
-        download(yt, audio_stream, file_dir, audio_file_name)
+        downloaded_video_path = download(yt, video_stream, file_dir, video_file_name)
+        downloaded_audio_path = download(yt, audio_stream, file_dir, audio_file_name)
         # ----------------------------------------------------------------------
         print_separator()
         print_info("Download complete. Merging audio and video...")
         # ----------------------------------------------------------------------
         # Merge video and audio using ffmpeg-python
-        merge_audio_video(video_file_path, audio_file_path, file_path)
+        merge_audio_video(downloaded_video_path, downloaded_audio_path, file_path)
         # ----------------------------------------------------------------------
     except Exception as e:
         print_separator()
-        print_error("Error during download or merge:", e)
+        print_error(f"Error during download or merge: {e}")
         exit(1)
     finally:
         # Clean up temporary files
-        if os.path.exists(video_file_path):
-            os.remove(video_file_path)
-        if os.path.exists(audio_file_path):
-            os.remove(audio_file_path)
+        if os.path.exists(downloaded_video_path):
+            os.remove(downloaded_video_path)
+        if os.path.exists(downloaded_audio_path):
+            os.remove(downloaded_audio_path)
         print_separator()
         print_success("Done")
     # --------------------------------------------------------------------------
@@ -90,12 +90,15 @@ def download(yt: YouTube, stream: Stream, file_dir: str, file_name: str):
     
     # Register progress callbacks
     yt.register_on_progress_callback(progress_cb)
-    
+        
     # Download the stream
-    stream.download(output_path=file_dir, filename=file_name)
+    downloaded_path = stream.download(output_path=file_dir, filename=file_name)
     
     # Close progress bar
     progress_bar.close()
+    
+    # Return downloaded file's path
+    return downloaded_path
 
 # ------------------------------------------------------------------------------
 # Merge audio and video
