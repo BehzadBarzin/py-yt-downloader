@@ -39,3 +39,18 @@ def get_project_root():
 # ------------------------------------------------------------------------------
 def get_desktop_dir():
     return os.path.join(os.path.expanduser("~"), "Desktop")
+
+
+# ------------------------------------------------------------------------------
+def get_main_script_location() -> str:
+    """
+    Returns the directory of the main entry point script in dev mode
+    or the directory of the main executable in bundled mode.
+    """
+    if getattr(sys, 'frozen', False):
+        # Running in bundled mode (packaged .exe file)
+        return os.path.dirname(sys.executable)
+    else:
+        # Running in development mode
+        # __file__ can be any imported module, but sys.argv[0] is the main script
+        return os.path.dirname(os.path.abspath(sys.argv[0]))

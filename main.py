@@ -7,7 +7,7 @@ from utils.console import clear_console, print_error, print_info, print_separato
 from utils.ask import check_url, get_url
 from utils.video_dl import download_video
 from utils.playlist_dl import download_playlist
-from utils.file import get_desktop_dir
+from utils.file import get_main_script_location
 
 # ------------------------------------------------------------------------------
 # Application code here
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         # Link: https://github.com/pytube/pytube/issues/1322
         
         # app_path is the directory the cache folder will be created in
-        innertube._cache_dir = os.path.join(get_desktop_dir(), "yt-dl", "__cache__") # ~/Desktop/yt-dl/__cache__
+        innertube._cache_dir = os.path.join(get_main_script_location(), "__cache__") # ./__cache__
         innertube._token_file = os.path.join(innertube._cache_dir, 'tokens.json')
         # ----------------------------------------------------------------------
         # Run the app

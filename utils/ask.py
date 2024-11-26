@@ -4,7 +4,7 @@ import inquirer
 from simple_chalk import chalk
 from pytubefix import Stream, YouTube
 
-from .file import get_desktop_dir, get_project_root, slugify
+from .file import get_main_script_location, slugify
 
 from .console import print_error
 
@@ -128,7 +128,7 @@ def get_filename(yt: YouTube, selected_video_stream: Stream):
         inquirer.Path('file_dir',
                         message=chalk.blue.bold("Please enter a directory"),
                         path_type=inquirer.Path.DIRECTORY,
-                        default=os.path.join(get_desktop_dir(), "yt-dl"),
+                        default=os.path.join(get_main_script_location(), "videos"),
                     ),
     ]
     

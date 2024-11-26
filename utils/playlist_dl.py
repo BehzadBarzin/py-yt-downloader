@@ -4,7 +4,7 @@ from uuid import uuid4 as UUID
 from pytubefix import Playlist, YouTube, Stream
 
 from .ask import choose_format, get_dirname, resolutions, get_min_resolution, bitrates, get_min_bitrate
-from .file import get_desktop_dir, get_project_root, slugify
+from .file import get_main_script_location, get_project_root, slugify
 from .console import print_separator, print_error, print_success, print_info
 from .video_dl import download, merge_audio_video
 
@@ -18,7 +18,7 @@ def download_playlist(url):
     print_separator()
     # --------------------------------------------------------------------------
     # Let user choose the directory name
-    default_dir = os.path.join(get_desktop_dir(), "yt-dl", slugify(yt.title)) # Use playlist title (slug) as default directory
+    default_dir = os.path.join(get_main_script_location(), "videos",slugify(yt.title)) # Use playlist title (slug) as default directory
     file_dir = get_dirname(default_dir)
     print_separator()
     # --------------------------------------------------------------------------

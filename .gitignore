@@ -5,3 +5,6 @@ data/*
 out
 dist
 build
+videos/*
+!videos/.gitkeep
+__cache__
