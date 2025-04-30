@@ -1,7 +1,7 @@
 import os
 import glob
 from uuid import uuid4 as UUID
-from pytubefix import Playlist, YouTube, Stream
+from pytube import Playlist, YouTube, Stream
 
 from .ask import choose_format, get_dirname, resolutions, get_min_resolution, bitrates, get_min_bitrate
 from .file import get_main_script_location, get_project_root, slugify

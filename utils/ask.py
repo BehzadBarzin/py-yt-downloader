@@ -2,7 +2,7 @@ import re
 import os
 import inquirer
 from simple_chalk import chalk
-from pytubefix import Stream, YouTube
+from pytube import Stream, YouTube
 
 from .file import get_main_script_location, slugify
 

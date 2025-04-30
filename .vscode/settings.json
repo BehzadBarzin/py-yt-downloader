@@ -12,7 +12,7 @@
         "MEIPASS",
         "moviepy",
         "pytube",
-        "pytubefix",
+        "pytube",
         "tqdm",
         "vcodec",
         "videofile"
