@@ -1,4 +1,4 @@
-from pytube import YouTube, Stream
+from pytubefix import YouTube, Stream
 import os
 from uuid import uuid4 as UUID
 from tqdm import tqdm

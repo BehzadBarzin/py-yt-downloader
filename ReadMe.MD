@@ -25,9 +25,17 @@ Download FFMPEG from [this link](https://www.gyan.dev/ffmpeg/builds/) and copy `
 
 ### Python Dependencies
 ```bash
-pip install pytube requests tqdm inquirer simple_chalk uuid geoip2
+# Option 1: Official pytube
+pip install pytube
+
+# Option 2: pytube with some fixes
+pip install pytubefix
+
+# Other libraries
+pip install requests tqdm inquirer simple_chalk uuid geoip2
 ```
  - `pytube`: YouTube video downloader
+    - `pytubefix`: If errors like HTTP 400 (or other issues) occur, use this instead of `pytube`
  - `requests`: Make HTTP calls
  - `tqdm`: Display progress bar in the terminal
  - `inquirer`: Ask user for inputs in the terminal

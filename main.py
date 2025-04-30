@@ -1,6 +1,6 @@
 import sys
 import os
-from pytube import innertube
+from pytubefix import innertube
 
 from utils.check_vpn import check_vpn
 from utils.console import clear_console, print_error, print_info, print_separator, print_success
