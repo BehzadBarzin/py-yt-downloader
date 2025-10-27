@@ -8,3 +8,5 @@ build
 videos/*
 !videos/.gitkeep
 __cache__
+.venv
+.vscode

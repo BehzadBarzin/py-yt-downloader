@@ -1,38 +1,45 @@
 # Youtube Downloader
 
 
-## Python Virtual Environment
-
-### Setup Env
+## Project Setup (First time)
+If you’re starting fresh, ensure `uv` is installed:
 ```bash
-python -m venv .py-yt-downloader
-```
-- Note: Virtual environment path is ignored in the `.gitignore` file. If a new name is chosen, that value should be updated.
-
-### Activate Env
-```bash
-.\.py-yt-downloader\Scripts\activate
+pip install uv
 ```
 
+Then initialize a project:
 
-## Install Dependencies
+```bash
+uv init py-yt-downloader
+cd py-yt-downloader
+```
 
-### GeoIP DB
+This automatically creates:
+
+ - `pyproject.toml` (project definition)
+
+ - `.python-version` (pinned Python version)
+
+ - `uv.lock` (lockfile for reproducible installs)
+
+### Install Dependencies
+
+#### GeoIP DB
 Download the `GeoLite2-Country.mmdb` file from [this link](https://github.com/P3TERX/GeoLite.mmdb) and copy to `<project_root>/data`
 
-### FFMPEG
+#### FFMPEG
 Download FFMPEG from [this link](https://www.gyan.dev/ffmpeg/builds/) and copy `ffmpeg.exe` from the archive to `<project_root>/data`
 
-### Python Dependencies
+#### Python Dependencies
 ```bash
 # Option 1: Official pytube
-pip install pytube
+uv add pytube
 
 # Option 2: pytube with some fixes
-pip install pytubefix
+uv add pytubefix
 
 # Other libraries
-pip install requests tqdm inquirer simple_chalk uuid geoip2
+uv add requests tqdm inquirer simple_chalk uuid geoip2
 ```
  - `pytube`: YouTube video downloader
     - `pytubefix`: If errors like HTTP 400 (or other issues) occur, use this instead of `pytube`
@@ -44,18 +51,30 @@ pip install requests tqdm inquirer simple_chalk uuid geoip2
  - `geoip2`: Uses the `GeoLite2-Country.mmdb` file to find the country for the an IP address.
 
 
+ ## 🔥Subsequent Installations
+ ```bash
+ uv sync
+ ```
+
+
+ ## Run the app
+
+```bash
+uv run python .\main.py
+```
+
  ## Package the app
 
  ### Install Dependencies
  ```bash
- pip install pyinstaller
+ uv add pyinstaller
  ```
 
  ### Run
 Create the Executable with PyInstaller: Run the following command:
 
 ```bash
-pyinstaller --name "yt-dl" --onefile --add-data "data/*:data" --recursive-copy-metadata "inquirer" main.py
+uv run pyinstaller --name "yt-dl" --onefile --add-data "data/*:data" --recursive-copy-metadata "inquirer" main.py
 ```
 Options:
  - `--name`: Specify the name of the bundle.
