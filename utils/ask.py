@@ -18,6 +18,10 @@ def get_url():
                     ),
     ]
     answers = inquirer.prompt(questions)
+    
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
 
     return answers['url']
 
@@ -33,12 +37,16 @@ def ask_yes_no(question):
                     ),
     ]
     answers = inquirer.prompt(questions)
+    
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
 
     return True if answers['yes_no'] == 'Yes' else False
 
 # ------------------------------------------------------------------------------
 # Check if url is video or playlist
-def check_url(url):
+def ask_video_or_playlist():
     questions = [
     inquirer.List('type',
                     message=chalk.blue.bold("Is this a video or playlist?"),
@@ -47,8 +55,30 @@ def check_url(url):
     ]
     answers = inquirer.prompt(questions)
 
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+
     return answers['type']
     
+# ------------------------------------------------------------------------------
+def ask_audio_only():
+    questions = [
+        inquirer.List('audio_only',
+                        message=chalk.blue.bold("Do you want to download audio only?"),
+                        choices=['Yes', 'No'],
+                        default='No',
+                        carousel=True
+                    ),
+    ]
+    answers = inquirer.prompt(questions)
+
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+
+    return True if answers['audio_only'] == 'Yes' else False
+
 # ------------------------------------------------------------------------------
 # Choose format (webm/mp4)
 def choose_format():
@@ -60,6 +90,10 @@ def choose_format():
                     ),
     ]
     answers = inquirer.prompt(questions)
+
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
 
     return answers['format']
 
@@ -97,6 +131,10 @@ def choose_stream(streams: list[Stream], is_video: bool):
     ]
     answers = inquirer.prompt(questions)
 
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+
     # Get selected itag from selected string
     selected_itag = answers['stream'].split(":")[0]
     
@@ -115,7 +153,7 @@ def choose_stream(streams: list[Stream], is_video: bool):
 
 # ------------------------------------------------------------------------------
 # Ask user for filename
-def get_filename(yt: YouTube, selected_video_stream: Stream):
+def get_filename(yt: YouTube, selected_stream: Stream, audio_only: bool = False):
     # This is a recursive function. if the file exists and user doesn't want to remove it, it asks for a new filename or directory.
     
     # Ask user for filename and directory
@@ -134,9 +172,13 @@ def get_filename(yt: YouTube, selected_video_stream: Stream):
     
     answers = inquirer.prompt(questions)
     
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+        
     # Create full file path
     file_dir = answers['file_dir']
-    file_name = f"{answers['file_name']}.{selected_video_stream.subtype}" # Add video file extension
+    file_name = f"{answers['file_name']}.{selected_stream.subtype}" # Add file extension (audio or video)
     file_path = os.path.join(file_dir, file_name)
     
     # If file exists, ask user whether to remove it
@@ -147,7 +189,7 @@ def get_filename(yt: YouTube, selected_video_stream: Stream):
             os.remove(file_path)
         else:
             # Recursively ask for filename
-            return get_filename(yt, selected_video_stream)
+            return get_filename(yt, selected_stream, audio_only)
 
     return (file_dir, file_name)
     
@@ -167,6 +209,9 @@ def get_dirname(default_dir: str):
     ]
     
     answers = inquirer.prompt(questions)
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
     
     dir = answers['dir']
     
@@ -207,6 +252,10 @@ def get_min_resolution():
     ]
     answers = inquirer.prompt(questions)
 
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+    
     return answers['min_resolution']
 # ------------------------------------------------------------------------------
 
@@ -227,6 +276,10 @@ def get_min_bitrate():
     ]
     answers = inquirer.prompt(questions)
 
+    if not answers:
+        print_error("No answer provided.")
+        exit(1)
+    
     return answers['min_bitrate']
 
 # ------------------------------------------------------------------------------

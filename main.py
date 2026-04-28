@@ -2,9 +2,8 @@ import sys
 import os
 from pytubefix import innertube
 
-from utils.check_vpn import check_vpn
 from utils.console import clear_console, print_error, print_info, print_separator, print_success
-from utils.ask import check_url, get_url
+from utils.ask import ask_audio_only, ask_video_or_playlist, get_url
 from utils.video_dl import download_video
 from utils.playlist_dl import download_playlist
 from utils.file import get_main_script_location
@@ -17,20 +16,18 @@ def main():
     clear_console()
     print_separator()
     # --------------------------------------------------------------------------
-    # Check VPN
-    check_vpn()
-    print_separator()
-    # --------------------------------------------------------------------------
     # Get URL from user
     url = get_url()
     print_separator()
     # --------------------------------------------------------------------------
     # Check if url is video, playlist, or channel
-    type = check_url(url)
+    type = ask_video_or_playlist()
     print_separator()
     # --------------------------------------------------------------------------
     if type == "Video":
-        download_video(url)
+        audio_only = ask_audio_only()
+        print_separator()
+        download_video(url, audio_only)
     elif type == "Playlist":
         download_playlist(url)
     else:

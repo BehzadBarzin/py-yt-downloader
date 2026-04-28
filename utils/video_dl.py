@@ -10,69 +10,102 @@ from .console import print_separator, print_error, print_success, print_info
 from .ask import choose_format, choose_stream, get_filename
 
 
-def download_video(url):
+def download_video(url: str, audio_only: bool = False):
     # --------------------------------------------------------------------------
     # Initialize PyTube object with OAuth
     yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
     # --------------------------------------------------------------------------
-    # Let user choose format (used to filter both with video and audio)
-    format = choose_format() # "webm" or "mp4"
-    print_separator()
-    # --------------------------------------------------------------------------
-    # Let user choose video stream
-    video_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track]
     
-    # Filter streams that match the selected format
-    video_stream_options = [stream for stream in video_stream_options if format in stream.mime_type]
-    
-    video_stream = choose_stream(video_stream_options, is_video=True)
-    print_separator()
-    # --------------------------------------------------------------------------
-    # Let user choose audio stream
-    audio_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track]
-    
-    # Filter streams that match the selected format
-    audio_stream_options = [stream for stream in audio_stream_options if format in stream.mime_type]
-    
-    audio_stream = choose_stream(audio_stream_options, is_video=False)
-    print_separator()
-    # --------------------------------------------------------------------------
-    # Let user choose the file and directory names
-    (file_dir, file_name) = get_filename(yt, video_stream)
-    file_path = os.path.join(file_dir, file_name)
-    
-    # Select temp file names for video and audio streams
-    random_id = str(UUID())[:8]
-    video_file_name = f"temp_vid_{random_id}"
-    
-    audio_file_name = f"temp_aud_{random_id}"
-    print_separator()
-    # --------------------------------------------------------------------------
-    # Start download process and merge audio and video
-    try:
-        # ----------------------------------------------------------------------
-        # Download video and audio streams
-        downloaded_video_path = download(yt, video_stream, file_dir, video_file_name)
-        downloaded_audio_path = download(yt, audio_stream, file_dir, audio_file_name)
-        # ----------------------------------------------------------------------
+    if audio_only:
+        # ======================================================================
+        # AUDIO ONLY MODE
+        # ======================================================================
+        # Let user choose audio stream
+        audio_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track]
+                
+        audio_stream = choose_stream(audio_stream_options, is_video=False)
         print_separator()
-        print_info("Download complete. Merging audio and video...")
-        # ----------------------------------------------------------------------
-        # Merge video and audio using ffmpeg-python
-        merge_audio_video(downloaded_video_path, downloaded_audio_path, file_path)
-        # ----------------------------------------------------------------------
-    except Exception as e:
+        # --------------------------------------------------------------------------
+        # Let user choose the file and directory names
+        (file_dir, file_name) = get_filename(yt, audio_stream, audio_only=True)
+        file_path = os.path.join(file_dir, file_name)
         print_separator()
-        print_error(f"Error during download or merge: {e}")
-        exit(1)
-    finally:
-        # Clean up temporary files
-        if os.path.exists(downloaded_video_path):
-            os.remove(downloaded_video_path)
-        if os.path.exists(downloaded_audio_path):
-            os.remove(downloaded_audio_path)
+        # --------------------------------------------------------------------------
+        # Download audio stream
+        try:
+            downloaded_audio_path = download(yt, audio_stream, file_dir, file_name)
+            print_separator()
+            print_success(f"Audio file saved to: {file_path}")
+        except Exception as e:
+            print_separator()
+            print_error(f"Error during download: {e}")
+            exit(1)
         print_separator()
         print_success("Done")
+    else:
+        # ======================================================================
+        # VIDEO + AUDIO MODE
+        # ======================================================================
+        # Let user choose format (used to filter both with video and audio)
+        format = choose_format() # "webm" or "mp4"
+        print_separator()
+        # --------------------------------------------------------------------------
+        # Let user choose video stream
+        video_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("resolution").desc() if stream.includes_video_track and not stream.includes_audio_track]
+        
+        # Filter streams that match the selected format
+        video_stream_options = [stream for stream in video_stream_options if format in stream.mime_type]
+        
+        video_stream = choose_stream(video_stream_options, is_video=True)
+        print_separator()
+        # --------------------------------------------------------------------------
+        # Let user choose audio stream
+        audio_stream_options: list[Stream]  = [stream for stream in yt.streams.filter(is_dash=True).order_by("abr").desc() if stream.includes_audio_track and not stream.includes_video_track]
+        
+        # Filter streams that match the selected format
+        audio_stream_options = [stream for stream in audio_stream_options if format in stream.mime_type]
+        
+        audio_stream = choose_stream(audio_stream_options, is_video=False)
+        print_separator()
+        # --------------------------------------------------------------------------
+        # Let user choose the file and directory names
+        (file_dir, file_name) = get_filename(yt, video_stream)
+        file_path = os.path.join(file_dir, file_name)
+        
+        # Select temp file names for video and audio streams
+        random_id = str(UUID())[:8]
+        video_file_name = f"temp_vid_{random_id}"
+        
+        audio_file_name = f"temp_aud_{random_id}"
+        print_separator()
+        # --------------------------------------------------------------------------
+        # Start download process and merge audio and video
+        downloaded_video_path, downloaded_audio_path = None, None
+        try:
+            # ----------------------------------------------------------------------
+            # Download video and audio streams
+            downloaded_video_path = download(yt, video_stream, file_dir, video_file_name)
+            downloaded_audio_path = download(yt, audio_stream, file_dir, audio_file_name)
+            # ----------------------------------------------------------------------
+            print_separator()
+            print_info("Download complete. Merging audio and video...")
+            # ----------------------------------------------------------------------
+            # Merge video and audio using ffmpeg-python
+            merge_audio_video(downloaded_video_path, downloaded_audio_path, file_path)
+            # ----------------------------------------------------------------------
+        except Exception as e:
+            print_separator()
+            print_error(f"Error during download or merge: {e}")
+            exit(1)
+        finally:
+            # Clean up temporary files
+            if downloaded_video_path and os.path.exists(downloaded_video_path):
+                os.remove(downloaded_video_path)
+            if downloaded_audio_path and os.path.exists(downloaded_audio_path):
+                # print("⚠️Not Removing Temp Audio File...")
+                os.remove(downloaded_audio_path)
+            print_separator()
+            print_success("Done")
     # --------------------------------------------------------------------------
     
 

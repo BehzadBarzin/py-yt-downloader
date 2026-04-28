@@ -10,8 +10,8 @@ from .video_dl import download, merge_audio_video
 
 def download_playlist(url):
     # --------------------------------------------------------------------------
-    # Initialize PyTube object with OAuth
-    yt = Playlist(url, use_oauth=True, allow_oauth_cache=True)
+    # Initialize PyTube object to fetch playlist info
+    yt = Playlist(url)
     # --------------------------------------------------------------------------
     # Let user choose format (used to filter both with video and audio)
     format = choose_format() # "webm" or "mp4"
@@ -35,8 +35,12 @@ def download_playlist(url):
     print_separator()
     # --------------------------------------------------------------------------
     # Download each video
-    for idx, video in enumerate(yt.videos):
-        print_info(f"Downloading video {idx + 1}/{len(yt.videos)}: {video.title}")
+    pl_videos = list(yt.videos)   # materializes the generator (the yt.videos is a lazy generator)
+    for idx, pl_video in enumerate(pl_videos):
+        # Enable OAuth on each YouTube object
+        video = YouTube(pl_video.watch_url, use_oauth=True, allow_oauth_cache=True)
+       
+        print_info(f"Downloading video {idx + 1}/{len(pl_videos)}: {video.title}")
         download_video(video, file_dir, format, min_resolution, min_bitrate, idx + 1)
         print_separator()
     # --------------------------------------------------------------------------
@@ -120,6 +124,7 @@ def download_video(yt: YouTube, file_dir: str, format: str, min_resolution: str,
         print_info(f"Downloading video: {file_name}")
     # --------------------------------------------------------------------------
     # Start download process and merge audio and video
+    downloaded_video_path, downloaded_audio_path = None, None
     try:
         # ----------------------------------------------------------------------
         # Download video and audio streams
@@ -136,9 +141,9 @@ def download_video(yt: YouTube, file_dir: str, format: str, min_resolution: str,
         exit(1)
     finally:
         # Clean up temporary files
-        if os.path.exists(downloaded_video_path):
+        if downloaded_video_path and os.path.exists(downloaded_video_path):
             os.remove(downloaded_video_path)
-        if os.path.exists(downloaded_audio_path):
+        if downloaded_audio_path and os.path.exists(downloaded_audio_path):
             os.remove(downloaded_audio_path)
         print_success("Video Downloaded")
     # --------------------------------------------------------------------------

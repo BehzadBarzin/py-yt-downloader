@@ -31,7 +31,7 @@ def get_project_root():
     """
     if getattr(sys, 'frozen', False):
         # Running in a PyInstaller bundle
-        return sys._MEIPASS
+        return sys._MEIPASS  # type: ignore
     else:
         # Running in a normal Python environment
         return os.path.dirname(os.path.abspath(sys.argv[0]))

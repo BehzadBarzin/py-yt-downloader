@@ -24,9 +24,6 @@ This automatically creates:
 
 ### Install Dependencies
 
-#### GeoIP DB
-Download the `GeoLite2-Country.mmdb` file from [this link](https://github.com/P3TERX/GeoLite.mmdb) and copy to `<project_root>/data`
-
 #### FFMPEG
 Download FFMPEG from [this link](https://www.gyan.dev/ffmpeg/builds/) and copy `ffmpeg.exe` from the archive to `<project_root>/data`
 
@@ -39,7 +36,7 @@ uv add pytube
 uv add pytubefix
 
 # Other libraries
-uv add requests tqdm inquirer simple_chalk uuid geoip2
+uv add requests tqdm inquirer simple_chalk uuid
 ```
  - `pytube`: YouTube video downloader
     - `pytubefix`: If errors like HTTP 400 (or other issues) occur, use this instead of `pytube`
@@ -48,7 +45,6 @@ uv add requests tqdm inquirer simple_chalk uuid geoip2
  - `inquirer`: Ask user for inputs in the terminal
  - `simple_chalk`: Display colored text in the terminal
  - `uuid`: Generate UUID
- - `geoip2`: Uses the `GeoLite2-Country.mmdb` file to find the country for the an IP address.
 
 
  ## 🔥Subsequent Installations
@@ -74,10 +70,9 @@ uv run python .\main.py
 Create the Executable with PyInstaller: Run the following command:
 
 ```bash
-uv run pyinstaller --name "yt-dl" --onefile --add-data "data/*:data" --recursive-copy-metadata "inquirer" main.py
+uv run pyinstaller --name "yt-dl" --add-data "data/*:data" --recursive-copy-metadata "inquirer" main.py
 ```
 Options:
  - `--name`: Specify the name of the bundle.
- - `--onefile`: Creates a single executable file.
  - `--add-data "<path-to-files>:<path-to-files-in-bundle>"`: Additional files or folders to include in the bundle. Replace `<path-to-files>` with the actual path to the asset files. Separate multiple files with a semicolon `;` on Windows and a colon `:` on macOS/Linux.
  - `--recursive-copy-metadata "inquirer"`: Some libraries need their metadata to be included in the bundle like this.
